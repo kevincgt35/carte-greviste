@@ -1,147 +1,99 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Carte – Suivi grévistes</title>
 
+  <!-- OPTIONNEL : rend le site robuste même si quelqu'un oublie le / final -->
+  <base href="/carte-greviste/">
+
   <style>
-    body { font-family: Arial, sans-serif; margin:0; background:#f5f5f5; }
-    h1 { text-align:center; margin:18px 0; }
+    :root{
+      --bg:#f6f6f7;
+      --card:#ffffff;
+      --border:#e6e6e9;
+      --text:#111;
+      --muted:#666;
+      --accent:#7a1fa2;
+      --danger:#d9363e;
+      --shadow: 0 6px 20px rgba(0,0,0,.06);
+      --radius:14px;
+      --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);font-family:var(--font);color:var(--text)}
+    header{padding:18px 22px;font-weight:800;font-size:34px;text-align:center}
+    .layout{display:grid;grid-template-columns:360px 1fr;gap:16px;padding:0 16px 16px;align-items:start}
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;max-height:calc(100vh - 120px);overflow:auto}
+    .panel h2{margin:0 0 8px;font-size:22px}
+    .hint{color:var(--muted);font-size:13px;margin:0 0 10px}
+    .row{display:flex;gap:10px;align-items:center}
+    select, input{width:100%;padding:10px 10px;border:1px solid var(--border);border-radius:10px;font-size:14px}
+    .btn{border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+    .btn-accent{background:var(--accent);color:#fff}
+    .btn-ghost{background:#fff;border:1px solid var(--border)}
+    .btn-danger{background:#fff;border:1px solid #f1b2b5;color:var(--danger)}
+    .btn-sm{padding:8px 12px;border-radius:12px}
+    .resultsTitle{margin:12px 0 6px;font-weight:900;font-size:18px}
+    .zoneMeta{color:var(--muted);font-size:13px;margin-bottom:10px}
+    .card{border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;background:#fff}
+    .cardTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .teamName{font-weight:900}
+    .small{color:var(--muted);font-size:12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px}
+    .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
 
-    .layout{
-      display:flex; gap:12px; max-width:1500px; margin:0 auto 30px;
-      padding:0 10px; align-items:flex-start;
-    }
+    .mapWrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px}
+    .mapContainer{position:relative;max-width:1100px;margin:0 auto}
+    .mapContainer img{width:100%;height:auto;display:block;border-radius:12px}
 
-    .sidebar{
-      width:380px; background:#fff; border-radius:12px;
-      box-shadow:0 4px 12px rgba(0,0,0,.12); padding:12px;
-    }
-    .sidebar h2{ margin:0 0 10px; font-size:18px; }
-    .sidebar .small{ font-size:12px; color:#666; margin:0 0 10px; }
-
-    .controls{ display:flex; gap:8px; align-items:center; margin-bottom:10px; }
-    select{
-      flex:1; padding:8px 10px; border-radius:10px; border:1px solid #ddd;
-      font-size:14px;
-    }
-    .refresh-btn{
-      padding:8px 10px; border-radius:10px; border:1px solid #ddd;
-      background:#fafafa; cursor:pointer;
-    }
-
-    .zone-summary{
-      border:1px solid #eee; border-radius:10px; padding:10px;
-      background:#fafafa; margin-bottom:10px;
-    }
-    .zone-summary .title{ font-weight:700; margin-bottom:4px; }
-    .zone-summary .stat{ font-size:13px; color:#333; }
-
-    .results-list{
-      display:flex; flex-direction:column; gap:10px;
-      max-height: calc(100vh - 240px); overflow:auto; padding-right:4px;
-    }
-
-    .row-card{
-      border:1px solid #eee; border-radius:12px; padding:10px;
-      background:#fff;
-    }
-    .row-top{
-      display:flex; justify-content:space-between; gap:10px; align-items:center;
-      margin-bottom:8px;
-    }
-    .row-title{ font-weight:700; font-size:13px; }
-    .row-id{ font-size:11px; color:#777; }
-
-    .grid{
-      display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;
-      margin-bottom:10px;
-    }
-    .field label{ display:block; font-size:11px; color:#666; margin-bottom:4px; }
-    .field input{
-      width:100%; padding:8px 10px; border-radius:10px;
-      border:1px solid #ddd; font-size:13px;
-    }
-
-    .row-actions{ display:flex; gap:8px; justify-content:flex-end; }
-    .btn{
-      padding:8px 10px; border-radius:10px; border:1px solid #ddd;
-      cursor:pointer; font-size:13px; background:#fafafa;
-    }
-    .btn-primary{ background:#800080; color:#fff; border-color:#800080; }
-    .btn-danger{ background:#fff0f0; border-color:#ffb3b3; color:#b00000; }
-
-    .empty{
-      padding:10px; border:1px dashed #ddd; border-radius:10px;
-      background:#fafafa; color:#666; font-size:13px;
-    }
-
-    /* CARTE */
-    .map-container{
-      position:relative; flex: 1; max-width: 1100px;
-      background:#fff; border-radius:12px; overflow:hidden;
-      box-shadow:0 4px 12px rgba(0,0,0,.15);
-    }
-    .map-container img{ width:100%; display:block; }
-
-    /* Hotspots invisibles mais cliquables */
+    /* HOTSPOTS INVISIBLES mais cliquables */
     .hotspot{
-      position:absolute; width:22px; height:22px; border-radius:50%;
-      cursor:pointer; transform: translate(-50%, -50%);
-      background: transparent; border: none;
+      position:absolute;width:24px;height:24px;border-radius:50%;
+      transform:translate(-50%,-50%);
+      background:transparent;
+      opacity:0;           /* invisible */
+      cursor:pointer;
     }
 
     /* MODALE */
-    .modal-backdrop{
-      position:fixed; inset:0; background:rgba(0,0,0,.4);
-      display:none; align-items:center; justify-content:center; z-index:1000;
-    }
-    .modal{
-      background:#fff; border-radius:12px; max-width:520px; width:95%;
-      padding:18px 20px; box-shadow:0 6px 20px rgba(0,0,0,.3);
-    }
-    .modal-header{ display:flex; justify-content:space-between; align-items:center; }
-    .modal-title{ font-size:1.15rem; font-weight:700; }
-    .close-btn{ background:none; border:none; font-size:1.6rem; cursor:pointer; }
-
-    table{ border-collapse:collapse; width:100%; margin-top:10px; }
-    th,td{ border:1px solid #ddd; padding:7px 8px; font-size:.95rem; }
-    th{ background:#f0e6f5; text-align:left; }
-    .modal input{ width:100%; border:none; outline:none; background:transparent; font-size:.95rem; }
-
-    .modal-footer{ margin-top:12px; text-align:right; }
-    .btn2{ padding:8px 14px; border-radius:10px; border:none; cursor:pointer; font-size:.95rem; }
-    .btn-secondary2{ background:#e0e0e0; margin-right:6px; }
-    .btn-primary2{ background:#800080; color:#fff; }
+    .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;padding:16px;z-index:9999}
+    .modal{width:min(520px, 96vw);background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.20);border:1px solid var(--border)}
+    .modalHeader{display:flex;justify-content:space-between;align-items:center;padding:14px 14px 10px;border-bottom:1px solid var(--border)}
+    .modalHeader b{font-size:18px}
+    .closeX{font-size:22px;border:0;background:transparent;cursor:pointer}
+    .modalBody{padding:14px}
+    .modalFooter{display:flex;gap:10px;justify-content:flex-end;padding:12px 14px;border-top:1px solid var(--border)}
+    .errorBox{margin-top:10px;color:var(--danger);font-weight:700;font-size:13px}
   </style>
 </head>
 
 <body>
+<header>Carte – Suivi grévistes</header>
 
-  <h1>Carte – Suivi grévistes</h1>
+<div class="layout">
+  <!-- PANNEAU GAUCHE -->
+  <aside class="panel">
+    <h2>Résultats</h2>
+    <p class="hint">Choisis une zone pour voir / modifier / supprimer les équipes.</p>
 
-  <div class="layout">
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-      <h2>Résultats</h2>
-      <p class="small">Choisis une zone pour voir / modifier / supprimer les équipes.</p>
-
-      <div class="controls">
-        <select id="zoneSelect"></select>
-        <button class="refresh-btn" id="refreshBtn">↻</button>
-      </div>
-
-      <div class="zone-summary" id="zoneSummary" style="display:none;">
-        <div class="title" id="zoneTitle"></div>
-        <div class="stat" id="zoneStatLine"></div>
-      </div>
-
-      <div id="resultsList" class="results-list"></div>
+    <div class="row">
+      <select id="zoneSelect"></select>
+      <button class="btn btn-ghost btn-sm" id="refreshBtn" title="Rafraîchir">↻</button>
     </div>
 
-    <!-- MAP -->
-    <div class="map-container" id="mapContainer">
+    <div id="zoneSummary" style="margin-top:10px;"></div>
+
+    <div class="resultsTitle" id="zoneTitle"></div>
+    <div class="zoneMeta" id="zoneMeta"></div>
+
+    <div id="resultsList"></div>
+  </aside>
+
+  <!-- CARTE -->
+  <main class="mapWrap">
+    <div class="mapContainer" id="mapContainer">
       <img src="carte-zones-production.png" alt="Carte des zones">
 
       <!-- OUEST -->
@@ -175,304 +127,307 @@
       <div class="hotspot" data-zone="INFRAPÔLE NORD PAS DE CALAIS" style="left:51%; top:10%;"></div>
       <div class="hotspot" data-zone="INFRAPÔLE NORD NORMANDIE" style="left:43%; top:24%;"></div>
     </div>
-  </div>
+  </main>
+</div>
 
-  <!-- MODALE SAISIE -->
-  <div class="modal-backdrop" id="modalBackdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">Ajouter une équipe – <span id="zoneName"></span></div>
-        <button class="close-btn" id="closeModal">&times;</button>
+<!-- MODALE AJOUT -->
+<div class="backdrop" id="backdrop">
+  <div class="modal">
+    <div class="modalHeader">
+      <div><b>Ajouter une équipe</b><div class="small">Zone : <span id="modalZone"></span></div></div>
+      <button class="closeX" id="closeModal">×</button>
+    </div>
+    <div class="modalBody">
+      <div class="grid">
+        <div>
+          <div class="small">Nom équipe</div>
+          <input id="mEquipe" placeholder="Ex: Équipe A">
+        </div>
+        <div>
+          <div class="small">% agent</div>
+          <input id="mAgent" type="number" min="0" max="100" step="1" placeholder="0-100">
+        </div>
+        <div>
+          <div class="small">% encadrement</div>
+          <input id="mEncad" type="number" min="0" max="100" step="1" placeholder="0-100">
+        </div>
       </div>
-
-      <table>
-        <tr><th>Champ</th><th>Valeur</th></tr>
-        <tr>
-          <td>Nom équipe</td>
-          <td><input type="text" id="champEquipe" placeholder="Ex: Équipe A"></td>
-        </tr>
-        <tr>
-          <td>% gréviste agent</td>
-          <td><input type="number" id="champGrevisteAgent" min="0" max="100" step="1" placeholder="0-100"></td>
-        </tr>
-        <tr>
-          <td>% gréviste encadrement</td>
-          <td><input type="number" id="champGrevisteEncadrement" min="0" max="100" step="1" placeholder="0-100"></td>
-        </tr>
-      </table>
-
-      <div class="modal-footer">
-        <button class="btn2 btn-secondary2" id="cancelBtn">Fermer</button>
-        <button class="btn2 btn-primary2" id="saveBtn">Enregistrer</button>
-      </div>
+      <div class="errorBox" id="modalErr" style="display:none;"></div>
+    </div>
+    <div class="modalFooter">
+      <button class="btn btn-ghost" id="cancelModal">Annuler</button>
+      <button class="btn btn-accent" id="saveModal">Enregistrer</button>
     </div>
   </div>
+</div>
 
-  <!-- MOT DE PASSE SIMPLE -->
-  <script>
-    const PASSWORD = "CTS CARTE"; // <-- change ici
-    const userPass = prompt("Mot de passe requis :");
-    if (userPass !== PASSWORD) {
-      alert("Accès refusé");
-      document.body.innerHTML = "<h2 style='text-align:center;margin-top:40px'>Accès refusé</h2>";
-      throw new Error("Accès refusé");
-    }
-  </script>
+<script>
+  // ✅ TON URL Apps Script /exec (celle qui renvoie data.rows)
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwd7Z7Fq_2_dSntYK_lp1fGdXwLrGEpW1cbJyc-vjZNCFtozP2Pn15Tp2UA2CuWJXFbww/exec";
 
-  <script>
-    // ✅ URL de ton Apps Script déployé
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwd7Z7Fq_2_dSntYK_lp1fGdXwLrGEpW1cbJyc-vjZNCFtozP2Pn15Tp2UA2CuWJXFbww/exec";
-    // DOM
-    const zoneSelect = document.getElementById("zoneSelect");
-    const refreshBtn = document.getElementById("refreshBtn");
-    const resultsList = document.getElementById("resultsList");
+  // DOM
+  const zoneSelect = document.getElementById("zoneSelect");
+  const refreshBtn = document.getElementById("refreshBtn");
+  const resultsList = document.getElementById("resultsList");
+  const zoneTitle = document.getElementById("zoneTitle");
+  const zoneMeta = document.getElementById("zoneMeta");
+  const zoneSummary = document.getElementById("zoneSummary");
 
-    const zoneSummary = document.getElementById("zoneSummary");
-    const zoneTitle = document.getElementById("zoneTitle");
-    const zoneStatLine = document.getElementById("zoneStatLine");
+  // Modal
+  const backdrop = document.getElementById("backdrop");
+  const modalZone = document.getElementById("modalZone");
+  const closeModal = document.getElementById("closeModal");
+  const cancelModal = document.getElementById("cancelModal");
+  const saveModal = document.getElementById("saveModal");
+  const modalErr = document.getElementById("modalErr");
+  const mEquipe = document.getElementById("mEquipe");
+  const mAgent = document.getElementById("mAgent");
+  const mEncad = document.getElementById("mEncad");
 
-    const modalBackdrop = document.getElementById('modalBackdrop');
-    const zoneNameSpan = document.getElementById('zoneName');
-    const closeModalBtn = document.getElementById('closeModal');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const saveBtn = document.getElementById('saveBtn');
+  // State
+  let API = { rows: [], byZone: {} };
+  const ZONES = [
+    "INFRAPÔLE BRETAGNE","INFRAPÔLE PAYS DE LOIRE","INFRAPÔLE INDRE LIMOUSIN","INFRAPÔLE AQUITAINE","INFRAPÔLE CENTRE","INFRAPÔLE LGV ATLANTIQUE","INFRAPÔLE POITOU CHARENTES",
+    "INFRAPÔLE MIDI-PYRÉNÉES","INFRAPÔLE LANGUEDOC-ROUSSILLON","INFRAPÔLE PACA","INFRAPÔLE LGV SEE","INFRAPÔLE ALPES","INFRAPÔLE RHODANIEN","INFRAPÔLE AUVERGNE-NIVERNAIS",
+    "INFRAPÔLE BOURGOGNE FRANCHE-COMTÉ","INFRAPÔLE RHENAN","INFRAPÔLE EST EUROPÉEN","INFRAPÔLE LORRAINE","INFRAPÔLE CHAMPAGNE ARDENNE",
+    "INFRAPÔLE HAUTE PICARDIE","INFRAPÔLE NORD EUROPÉEN","INFRAPÔLE NORD PAS DE CALAIS","INFRAPÔLE NORD NORMANDIE"
+  ];
 
-    // Données en mémoire
-    // apiData = { rows: [{id,zone,equipe,agent,encad,...}], byZone: { zone:{sumA,sumE,count} } }
-    let apiData = { rows: [], byZone: {} };
+  // JSONP helper (aucun fetch => stable sur GitHub Pages)
+  function apiCall(action, params = {}) {
+    return new Promise((resolve, reject) => {
+      const cb = "cb_" + action + "_" + Date.now() + "_" + Math.floor(Math.random()*10000);
+      window[cb] = (payload) => {
+        try { delete window[cb]; } catch(e){}
+        script.remove();
+        resolve(payload);
+      };
 
-    // Zones (depuis tes hotspots pour remplir la liste)
-    const HOTSPOT_ZONES = Array.from(document.querySelectorAll(".hotspot"))
-      .map(h => h.getAttribute("data-zone"))
-      .filter(Boolean);
+      const usp = new URLSearchParams({ action, callback: cb, t: Date.now(), ...params });
+      const url = `${SCRIPT_URL}?${usp.toString()}`;
 
-    function closeModal(){ modalBackdrop.style.display = 'none'; }
-    closeModalBtn.addEventListener('click', closeModal);
-    cancelBtn.addEventListener('click', closeModal);
-    modalBackdrop.addEventListener('click', (e) => { if (e.target === modalBackdrop) closeModal(); });
-
-    // Clic sur carte => ouvrir modal + sélectionner zone dans menu
-    document.querySelectorAll(".hotspot").forEach(h => {
-      h.addEventListener("click", () => {
-        const z = h.getAttribute("data-zone");
-        zoneSelect.value = z;
-        onZoneChanged();
-        zoneNameSpan.textContent = z;
-        modalBackdrop.style.display = "flex";
-      });
+      const script = document.createElement("script");
+      script.src = url;
+      script.onerror = () => {
+        try { delete window[cb]; } catch(e){}
+        script.remove();
+        reject(new Error("Impossible de charger les données (API). Vérifie Apps Script (doGet action=list) et le déploiement."));
+      };
+      document.head.appendChild(script);
     });
+  }
 
-    // Utilitaires
-    function esc(s){ return String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  function round1(n){ return Math.round(n*10)/10; }
 
-    function computeZoneSummary(zone){
-      const z = apiData.byZone[zone];
-      if (!z || !z.count) return null;
-      const avgA = Math.round((z.sumA / z.count) * 10) / 10;
-      const avgE = Math.round((z.sumE / z.count) * 10) / 10;
-      return { count: z.count, avgA, avgE };
+  function computeZoneMeta(zone){
+    const z = API.byZone[zone];
+    if (!z || !z.count) return { count: 0, moyA: 0, moyE: 0 };
+    return { count: z.count, moyA: round1(z.sumA / z.count), moyE: round1(z.sumE / z.count) };
+  }
+
+  function renderZone(zone){
+    const rows = API.rows.filter(r => r.zone === zone);
+
+    zoneTitle.textContent = zone;
+    const meta = computeZoneMeta(zone);
+    zoneMeta.textContent = `${meta.count} équipe(s) – Moy ${meta.moyA}% A / ${meta.moyE}% E`;
+
+    resultsList.innerHTML = "";
+
+    if (!rows.length) {
+      resultsList.innerHTML = `<div class="small" style="color:var(--muted)">Aucune équipe pour cette zone. Clique sur la zone sur la carte pour ajouter.</div>`;
+      return;
     }
 
-    function fillZoneSelect(){
-      zoneSelect.innerHTML = "";
-      const zones = Array.from(new Set(HOTSPOT_ZONES)).sort((a,b)=>a.localeCompare(b,"fr"));
-
-      zones.forEach(z => {
-        const opt = document.createElement("option");
-        opt.value = z;
-        opt.textContent = z;
-        zoneSelect.appendChild(opt);
-      });
-
-      // sélection par défaut
-      if (zones.length) zoneSelect.value = zones[0];
-    }
-
-    function renderZoneSummary(zone){
-      const s = computeZoneSummary(zone);
-      if (!s) {
-        zoneSummary.style.display = "none";
-        return;
-      }
-      zoneSummary.style.display = "block";
-      zoneTitle.textContent = zone;
-      zoneStatLine.textContent = `${s.count} équipe(s) – Moy ${s.avgA}% A / ${s.avgE}% E`;
-    }
-
-    function renderRowsForZone(zone){
-      resultsList.innerHTML = "";
-
-      const rows = apiData.rows
-        .filter(r => r.zone === zone)
-        .sort((a,b)=> String(a.equipe).localeCompare(String(b.equipe), "fr"));
-
-      if (!rows.length){
-        resultsList.innerHTML = `<div class="empty">Aucune équipe enregistrée pour cette zone.</div>`;
-        return;
-      }
-
-      rows.forEach(r => {
-        const card = document.createElement("div");
-        card.className = "row-card";
-        card.dataset.id = r.id;
-
-        card.innerHTML = `
-          <div class="row-top">
-            <div>
-              <div class="row-title">${esc(r.equipe)}</div>
-              <div class="row-id">ID: ${esc(r.id)}</div>
-            </div>
-            <div style="font-size:12px;color:#666;text-align:right;">
-              ${esc(r.zone)}
-            </div>
+    rows.forEach(r => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="cardTop">
+          <div>
+            <div class="teamName">${escapeHtml(r.equipe)}</div>
+            <div class="small">ID: ${escapeHtml(r.id)}</div>
           </div>
+          <div class="small">${escapeHtml(r.zone)}</div>
+        </div>
 
-          <div class="grid">
-            <div class="field">
-              <label>Nom équipe</label>
-              <input type="text" value="${esc(r.equipe)}" data-field="equipe">
-            </div>
-            <div class="field">
-              <label>% agent</label>
-              <input type="number" min="0" max="100" step="1" value="${esc(r.agent)}" data-field="agent">
-            </div>
-            <div class="field">
-              <label>% encadrement</label>
-              <input type="number" min="0" max="100" step="1" value="${esc(r.encad)}" data-field="encad">
-            </div>
+        <div class="grid">
+          <div>
+            <div class="small">Nom équipe</div>
+            <input data-id="${r.id}" data-field="equipe" value="${escapeAttr(r.equipe)}">
           </div>
-
-          <div class="row-actions">
-            <button class="btn btn-primary" data-action="save">Modifier</button>
-            <button class="btn btn-danger" data-action="delete">Supprimer</button>
+          <div>
+            <div class="small">% agent</div>
+            <input type="number" min="0" max="100" step="1" data-id="${r.id}" data-field="agent" value="${r.agent}">
           </div>
-        `;
+          <div>
+            <div class="small">% encadrement</div>
+            <input type="number" min="0" max="100" step="1" data-id="${r.id}" data-field="encad" value="${r.encad}">
+          </div>
+        </div>
 
-        // Actions
-        card.querySelector('[data-action="save"]').addEventListener("click", () => {
-          const equipe = card.querySelector('[data-field="equipe"]').value.trim();
-          const agent = Number(card.querySelector('[data-field="agent"]').value);
-          const encad = Number(card.querySelector('[data-field="encad"]').value);
+        <div class="actions">
+          <button class="btn btn-accent btn-sm" data-action="update" data-id="${r.id}">Modifier</button>
+          <button class="btn btn-danger btn-sm" data-action="delete" data-id="${r.id}">Supprimer</button>
+        </div>
+      `;
 
-          if (!equipe) return alert("Nom équipe manquant.");
-          if (Number.isNaN(agent) || Number.isNaN(encad)) return alert("Pourcentages invalides.");
-
-          apiUpdate(r.id, equipe, agent, encad);
-        });
-
-        card.querySelector('[data-action="delete"]').addEventListener("click", () => {
-          if (!confirm("Supprimer cette ligne ?")) return;
-          apiDelete(r.id);
-        });
-
-        resultsList.appendChild(card);
-      });
-    }
-
-    function onZoneChanged(){
-      const zone = zoneSelect.value;
-      renderZoneSummary(zone);
-      renderRowsForZone(zone);
-    }
-
-    zoneSelect.addEventListener("change", onZoneChanged);
-
-    // --- APPELS API via JSONP (compat GitHub Pages) ---
-    function jsonp(url, cbName){
-      return new Promise((resolve, reject) => {
-        const s = document.createElement("script");
-        const cleanup = () => { if (s.parentNode) s.parentNode.removeChild(s); };
-
-        window[cbName] = (payload) => { cleanup(); resolve(payload); };
-        s.onerror = () => { cleanup(); reject(new Error("JSONP error")); };
-        s.src = url;
-        document.body.appendChild(s);
-      });
-    }
-
-    async function apiList(){
-      const cb = "cb_list_" + Date.now();
-      const url = `${SCRIPT_URL}?callback=${cb}&action=list&ts=${Date.now()}`;
-      const res = await jsonp(url, cb);
-      if (!res.ok) throw new Error(res.error || "API list error");
-      apiData = res.data;
-      onZoneChanged();
-    }
-
-    async function apiUpdate(id, equipe, agent, encad){
-      const cb = "cb_upd_" + Date.now();
-      const url = `${SCRIPT_URL}?callback=${cb}&action=update&id=${encodeURIComponent(id)}&equipe=${encodeURIComponent(equipe)}&agent=${encodeURIComponent(agent)}&encad=${encodeURIComponent(encad)}&ts=${Date.now()}`;
-      const res = await jsonp(url, cb);
-      if (!res.ok) return alert("Erreur update: " + (res.error || ""));
-      apiData = res.data;
-      onZoneChanged();
-      alert("OK : ligne modifiée");
-    }
-
-    async function apiDelete(id){
-      const cb = "cb_del_" + Date.now();
-      const url = `${SCRIPT_URL}?callback=${cb}&action=delete&id=${encodeURIComponent(id)}&ts=${Date.now()}`;
-      const res = await jsonp(url, cb);
-      if (!res.ok) return alert("Erreur delete: " + (res.error || ""));
-      apiData = res.data;
-      onZoneChanged();
-      alert("OK : ligne supprimée");
-    }
-
-    refreshBtn.addEventListener("click", () => {
-      apiList().catch(err => {
-        console.error(err);
-        alert("Impossible de recharger. Vérifie Apps Script / déploiement.");
-      });
+      resultsList.appendChild(card);
     });
+  }
 
-    // --- AJOUT via POST (modale) ---
-    saveBtn.addEventListener("click", async () => {
-      const zone = zoneSelect.value;
-      const equipe = document.getElementById("champEquipe").value.trim();
-      const agentStr = document.getElementById("champGrevisteAgent").value;
-      const encadStr = document.getElementById("champGrevisteEncadrement").value;
+  function renderSummary(){
+    // petit résumé global (optionnel)
+    const total = API.rows.length;
+    zoneSummary.innerHTML = `<div class="small" style="color:var(--muted)">Total lignes : <b>${total}</b></div>`;
+  }
 
-      if (!equipe) return alert("Merci de saisir le nom d’équipe.");
-      if (agentStr === "" || encadStr === "") return alert("Merci de saisir les deux pourcentages.");
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function escapeAttr(s){ return escapeHtml(s).replace(/"/g, "&quot;"); }
 
-      const agent = Number(agentStr);
-      const encad = Number(encadStr);
-      if (Number.isNaN(agent) || Number.isNaN(encad)) return alert("Pourcentages invalides.");
+  async function loadAll(){
+    try{
+      const res = await apiCall("list");
+      if(!res.ok) throw new Error(res.error || "API not ok");
+      API = res.data;
 
-      const data = { zone, equipe, grevisteAgent: agent, grevisteEncadrement: encad };
+      renderSummary();
 
-      try {
-        await fetch(SCRIPT_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data)
+      // remplir select si vide
+      if(zoneSelect.options.length === 0){
+        ZONES.forEach(z => {
+          const opt = document.createElement("option");
+          opt.value = z; opt.textContent = z;
+          zoneSelect.appendChild(opt);
         });
-
-        closeModal();
-        document.getElementById('champEquipe').value = "";
-        document.getElementById('champGrevisteAgent').value = "";
-        document.getElementById('champGrevisteEncadrement').value = "";
-
-        // Recharger depuis le sheet (pour récupérer le nouvel ID créé côté Apps Script)
-        await apiList();
-        alert("OK : équipe ajoutée");
-      } catch (err) {
-        console.error(err);
-        alert("Erreur d'envoi. Vérifie le déploiement Apps Script.");
       }
-    });
 
-    // Init
-    fillZoneSelect();
-    zoneNameSpan.textContent = zoneSelect.value;
-
-    // Charger les lignes au démarrage
-    apiList().catch(err => {
+      renderZone(zoneSelect.value || ZONES[0]);
+    }catch(err){
       console.error(err);
-      resultsList.innerHTML = `<div class="empty">Impossible de charger les données (API). Vérifie Apps Script (doGet action=list) et le déploiement.</div>`;
+      resultsList.innerHTML = `<div class="small" style="color:var(--danger);font-weight:800">${escapeHtml(err.message || err)}</div>`;
+      zoneTitle.textContent = "";
+      zoneMeta.textContent = "";
+    }
+  }
+
+  // Update/Delete buttons
+  resultsList.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if(!btn) return;
+
+    const id = btn.getAttribute("data-id");
+    const action = btn.getAttribute("data-action");
+
+    const card = btn.closest(".card");
+    const inputs = Array.from(card.querySelectorAll("input[data-id]"));
+
+    const data = {};
+    inputs.forEach(inp => {
+      const f = inp.getAttribute("data-field");
+      data[f] = inp.value;
     });
-  </script>
+
+    try{
+      if(action === "update"){
+        const equipe = String(data.equipe || "").trim();
+        const agent = Number(data.agent);
+        const encad = Number(data.encad);
+        if(!equipe) return alert("Nom équipe obligatoire");
+        if(isNaN(agent) || isNaN(encad)) return alert("Pourcentages invalides");
+
+        const res = await apiCall("update", { id, equipe, agent, encad });
+        if(!res.ok) throw new Error(res.error || "update failed");
+        API = res.data;
+        renderSummary();
+        renderZone(zoneSelect.value);
+      }
+
+      if(action === "delete"){
+        if(!confirm("Supprimer cette ligne ?")) return;
+        const res = await apiCall("delete", { id });
+        if(!res.ok) throw new Error(res.error || "delete failed");
+        API = res.data;
+        renderSummary();
+        renderZone(zoneSelect.value);
+      }
+    }catch(err){
+      console.error(err);
+      alert("Erreur: " + (err.message || err));
+    }
+  });
+
+  // Select zone
+  zoneSelect.addEventListener("change", () => renderZone(zoneSelect.value));
+  refreshBtn.addEventListener("click", loadAll);
+
+  // Hotspots => ouvrir modal d'ajout
+  document.querySelectorAll(".hotspot").forEach(h => {
+    h.addEventListener("click", () => {
+      const z = h.getAttribute("data-zone");
+      zoneSelect.value = z;
+      renderZone(z);
+
+      modalZone.textContent = z;
+      mEquipe.value = "";
+      mAgent.value = "";
+      mEncad.value = "";
+      modalErr.style.display = "none";
+      backdrop.style.display = "flex";
+      setTimeout(() => mEquipe.focus(), 50);
+    });
+  });
+
+  function closeModalFn(){
+    backdrop.style.display = "none";
+  }
+  closeModal.addEventListener("click", closeModalFn);
+  cancelModal.addEventListener("click", closeModalFn);
+  backdrop.addEventListener("click", (e)=>{ if(e.target === backdrop) closeModalFn(); });
+
+  // Save (ADD) via JSONP GET (stable)
+  saveModal.addEventListener("click", async () => {
+    const zone = modalZone.textContent;
+    const equipe = mEquipe.value.trim();
+    const agent = Number(mAgent.value);
+    const encad = Number(mEncad.value);
+
+    if(!equipe){
+      modalErr.textContent = "Merci de saisir le nom d’équipe.";
+      modalErr.style.display = "block";
+      return;
+    }
+    if(isNaN(agent) || isNaN(encad)){
+      modalErr.textContent = "Merci de saisir les deux pourcentages (0-100).";
+      modalErr.style.display = "block";
+      return;
+    }
+
+    try{
+      const res = await apiCall("add", { zone, equipe, agent, encad });
+      if(!res.ok) throw new Error(res.error || "add failed");
+      API = res.data;
+      renderSummary();
+      renderZone(zoneSelect.value);
+      closeModalFn();
+    }catch(err){
+      console.error(err);
+      modalErr.textContent = "Erreur API: " + (err.message || err);
+      modalErr.style.display = "block";
+    }
+  });
+
+  // INIT
+  zoneSelect.innerHTML = "";
+  ZONES.forEach(z => {
+    const opt = document.createElement("option");
+    opt.value = z; opt.textContent = z;
+    zoneSelect.appendChild(opt);
+  });
+  zoneSelect.value = "INFRAPÔLE BRETAGNE";
+  loadAll();
+</script>
 </body>
 </html>
