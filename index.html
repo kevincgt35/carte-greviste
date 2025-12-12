@@ -5,36 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Carte – Suivi grévistes</title>
 
-  <!-- OPTIONNEL : rend le site robuste même si quelqu'un oublie le / final -->
+  <!-- Important si ton repo s'appelle carte-greviste -->
   <base href="/carte-greviste/">
 
   <style>
     :root{
-      --bg:#f6f6f7;
-      --card:#ffffff;
-      --border:#e6e6e9;
-      --text:#111;
-      --muted:#666;
-      --accent:#7a1fa2;
-      --danger:#d9363e;
-      --shadow: 0 6px 20px rgba(0,0,0,.06);
-      --radius:14px;
-      --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --bg:#f6f6f7; --card:#fff; --border:#e6e6e9; --text:#111; --muted:#666;
+      --accent:#7a1fa2; --danger:#d9363e; --shadow:0 6px 20px rgba(0,0,0,.06); --r:14px;
+      --font:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);font-family:var(--font);color:var(--text)}
     header{padding:18px 22px;font-weight:800;font-size:34px;text-align:center}
     .layout{display:grid;grid-template-columns:360px 1fr;gap:16px;padding:0 16px 16px;align-items:start}
-    .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;max-height:calc(100vh - 120px);overflow:auto}
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;max-height:calc(100vh - 120px);overflow:auto}
     .panel h2{margin:0 0 8px;font-size:22px}
     .hint{color:var(--muted);font-size:13px;margin:0 0 10px}
     .row{display:flex;gap:10px;align-items:center}
-    select, input{width:100%;padding:10px 10px;border:1px solid var(--border);border-radius:10px;font-size:14px}
+    select, input{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:14px}
     .btn{border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
     .btn-accent{background:var(--accent);color:#fff}
     .btn-ghost{background:#fff;border:1px solid var(--border)}
     .btn-danger{background:#fff;border:1px solid #f1b2b5;color:var(--danger)}
-    .btn-sm{padding:8px 12px;border-radius:12px}
+    .btn-sm{padding:8px 12px}
     .resultsTitle{margin:12px 0 6px;font-weight:900;font-size:18px}
     .zoneMeta{color:var(--muted);font-size:13px;margin-bottom:10px}
     .card{border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;background:#fff}
@@ -43,37 +36,52 @@
     .small{color:var(--muted);font-size:12px}
     .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px}
     .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
-
-    .mapWrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px}
+    .mapWrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:12px}
     .mapContainer{position:relative;max-width:1100px;margin:0 auto}
     .mapContainer img{width:100%;height:auto;display:block;border-radius:12px}
 
-    /* HOTSPOTS INVISIBLES mais cliquables */
+    /* hotspots invisibles */
     .hotspot{
-      position:absolute;width:24px;height:24px;border-radius:50%;
+      position:absolute;width:26px;height:26px;border-radius:50%;
       transform:translate(-50%,-50%);
-      background:transparent;
-      opacity:0;           /* invisible */
-      cursor:pointer;
+      background:transparent; opacity:0; cursor:pointer;
     }
 
-    /* MODALE */
+    /* modal */
     .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;padding:16px;z-index:9999}
-    .modal{width:min(520px, 96vw);background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.20);border:1px solid var(--border)}
+    .modal{width:min(520px,96vw);background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.20);border:1px solid var(--border)}
     .modalHeader{display:flex;justify-content:space-between;align-items:center;padding:14px 14px 10px;border-bottom:1px solid var(--border)}
     .modalHeader b{font-size:18px}
     .closeX{font-size:22px;border:0;background:transparent;cursor:pointer}
     .modalBody{padding:14px}
     .modalFooter{display:flex;gap:10px;justify-content:flex-end;padding:12px 14px;border-top:1px solid var(--border)}
-    .errorBox{margin-top:10px;color:var(--danger);font-weight:700;font-size:13px}
+    .errorBox{margin-top:10px;color:var(--danger);font-weight:800;font-size:13px}
+
+    /* password overlay */
+    .gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.40);z-index:10000;padding:16px}
+    .gateCard{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.20);padding:18px;max-width:420px;width:100%}
+    .gateTitle{font-weight:900;font-size:20px;margin:0 0 6px}
+    .gateHint{color:var(--muted);font-size:13px;margin:0 0 12px}
   </style>
 </head>
 
 <body>
 <header>Carte – Suivi grévistes</header>
 
-<div class="layout">
-  <!-- PANNEAU GAUCHE -->
+<!-- PASSWORD GATE -->
+<div class="gate" id="gate">
+  <div class="gateCard">
+    <p class="gateTitle">Accès protégé</p>
+    <p class="gateHint">Entre le mot de passe pour accéder à la carte.</p>
+    <div class="row">
+      <input id="pwInput" type="password" placeholder="Mot de passe">
+      <button class="btn btn-accent btn-sm" id="pwBtn">OK</button>
+    </div>
+    <div class="errorBox" id="pwErr" style="display:none;"></div>
+  </div>
+</div>
+
+<div class="layout" id="app" style="display:none;">
   <aside class="panel">
     <h2>Résultats</h2>
     <p class="hint">Choisis une zone pour voir / modifier / supprimer les équipes.</p>
@@ -83,15 +91,12 @@
       <button class="btn btn-ghost btn-sm" id="refreshBtn" title="Rafraîchir">↻</button>
     </div>
 
-    <div id="zoneSummary" style="margin-top:10px;"></div>
-
     <div class="resultsTitle" id="zoneTitle"></div>
     <div class="zoneMeta" id="zoneMeta"></div>
 
     <div id="resultsList"></div>
   </aside>
 
-  <!-- CARTE -->
   <main class="mapWrap">
     <div class="mapContainer" id="mapContainer">
       <img src="carte-zones-production.png" alt="Carte des zones">
@@ -130,7 +135,7 @@
   </main>
 </div>
 
-<!-- MODALE AJOUT -->
+<!-- MODAL ADD -->
 <div class="backdrop" id="backdrop">
   <div class="modal">
     <div class="modalHeader">
@@ -139,18 +144,9 @@
     </div>
     <div class="modalBody">
       <div class="grid">
-        <div>
-          <div class="small">Nom équipe</div>
-          <input id="mEquipe" placeholder="Ex: Équipe A">
-        </div>
-        <div>
-          <div class="small">% agent</div>
-          <input id="mAgent" type="number" min="0" max="100" step="1" placeholder="0-100">
-        </div>
-        <div>
-          <div class="small">% encadrement</div>
-          <input id="mEncad" type="number" min="0" max="100" step="1" placeholder="0-100">
-        </div>
+        <div><div class="small">Nom équipe</div><input id="mEquipe" placeholder="Ex: Équipe A"></div>
+        <div><div class="small">% agent</div><input id="mAgent" type="number" min="0" max="100" step="1"></div>
+        <div><div class="small">% encadrement</div><input id="mEncad" type="number" min="0" max="100" step="1"></div>
       </div>
       <div class="errorBox" id="modalErr" style="display:none;"></div>
     </div>
@@ -162,18 +158,32 @@
 </div>
 
 <script>
-  // ✅ TON URL Apps Script /exec (celle qui renvoie data.rows)
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwd7Z7Fq_2_dSntYK_lp1fGdXwLrGEpW1cbJyc-vjZNCFtozP2Pn15Tp2UA2CuWJXFbww/exec";
+  // ====== CONFIG ======
+  const PASSWORD = "CTS CARTE";
 
-  // DOM
+  // Mets TON URL /exec
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyLA0xAIii_5bBm5ssubHTlA6UnmvLBgqOftWsgKUB6e4ZKDviRQw92L6LbecxgdK8Pxg/exec";
+
+  const ZONES = [
+    "INFRAPÔLE BRETAGNE","INFRAPÔLE PAYS DE LOIRE","INFRAPÔLE INDRE LIMOUSIN","INFRAPÔLE AQUITAINE","INFRAPÔLE CENTRE","INFRAPÔLE LGV ATLANTIQUE","INFRAPÔLE POITOU CHARENTES",
+    "INFRAPÔLE MIDI-PYRÉNÉES","INFRAPÔLE LANGUEDOC-ROUSSILLON","INFRAPÔLE PACA","INFRAPÔLE LGV SEE","INFRAPÔLE ALPES","INFRAPÔLE RHODANIEN","INFRAPÔLE AUVERGNE-NIVERNAIS",
+    "INFRAPÔLE BOURGOGNE FRANCHE-COMTÉ","INFRAPÔLE RHENAN","INFRAPÔLE EST EUROPÉEN","INFRAPÔLE LORRAINE","INFRAPÔLE CHAMPAGNE ARDENNE",
+    "INFRAPÔLE HAUTE PICARDIE","INFRAPÔLE NORD EUROPÉEN","INFRAPÔLE NORD PAS DE CALAIS","INFRAPÔLE NORD NORMANDIE"
+  ];
+
+  // ====== DOM ======
+  const app = document.getElementById("app");
+  const gate = document.getElementById("gate");
+  const pwInput = document.getElementById("pwInput");
+  const pwBtn = document.getElementById("pwBtn");
+  const pwErr = document.getElementById("pwErr");
+
   const zoneSelect = document.getElementById("zoneSelect");
   const refreshBtn = document.getElementById("refreshBtn");
   const resultsList = document.getElementById("resultsList");
   const zoneTitle = document.getElementById("zoneTitle");
   const zoneMeta = document.getElementById("zoneMeta");
-  const zoneSummary = document.getElementById("zoneSummary");
 
-  // Modal
   const backdrop = document.getElementById("backdrop");
   const modalZone = document.getElementById("modalZone");
   const closeModal = document.getElementById("closeModal");
@@ -184,16 +194,10 @@
   const mAgent = document.getElementById("mAgent");
   const mEncad = document.getElementById("mEncad");
 
-  // State
+  // ====== STATE ======
   let API = { rows: [], byZone: {} };
-  const ZONES = [
-    "INFRAPÔLE BRETAGNE","INFRAPÔLE PAYS DE LOIRE","INFRAPÔLE INDRE LIMOUSIN","INFRAPÔLE AQUITAINE","INFRAPÔLE CENTRE","INFRAPÔLE LGV ATLANTIQUE","INFRAPÔLE POITOU CHARENTES",
-    "INFRAPÔLE MIDI-PYRÉNÉES","INFRAPÔLE LANGUEDOC-ROUSSILLON","INFRAPÔLE PACA","INFRAPÔLE LGV SEE","INFRAPÔLE ALPES","INFRAPÔLE RHODANIEN","INFRAPÔLE AUVERGNE-NIVERNAIS",
-    "INFRAPÔLE BOURGOGNE FRANCHE-COMTÉ","INFRAPÔLE RHENAN","INFRAPÔLE EST EUROPÉEN","INFRAPÔLE LORRAINE","INFRAPÔLE CHAMPAGNE ARDENNE",
-    "INFRAPÔLE HAUTE PICARDIE","INFRAPÔLE NORD EUROPÉEN","INFRAPÔLE NORD PAS DE CALAIS","INFRAPÔLE NORD NORMANDIE"
-  ];
 
-  // JSONP helper (aucun fetch => stable sur GitHub Pages)
+  // ====== JSONP API (stable sur GitHub Pages) ======
   function apiCall(action, params = {}) {
     return new Promise((resolve, reject) => {
       const cb = "cb_" + action + "_" + Date.now() + "_" + Math.floor(Math.random()*10000);
@@ -202,10 +206,8 @@
         script.remove();
         resolve(payload);
       };
-
       const usp = new URLSearchParams({ action, callback: cb, t: Date.now(), ...params });
       const url = `${SCRIPT_URL}?${usp.toString()}`;
-
       const script = document.createElement("script");
       script.src = url;
       script.onerror = () => {
@@ -217,25 +219,26 @@
     });
   }
 
-  function round1(n){ return Math.round(n*10)/10; }
+  const round1 = n => Math.round(n * 10) / 10;
+  const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const escAttr = s => esc(s).replace(/"/g, "&quot;");
 
-  function computeZoneMeta(zone){
-    const z = API.byZone[zone];
-    if (!z || !z.count) return { count: 0, moyA: 0, moyE: 0 };
-    return { count: z.count, moyA: round1(z.sumA / z.count), moyE: round1(z.sumE / z.count) };
+  function zoneStats(zone){
+    const z = (API && API.byZone) ? API.byZone[zone] : null;
+    if (!z || !z.count) return {count:0,moyA:0,moyE:0};
+    return {count:z.count, moyA:round1(z.sumA/z.count), moyE:round1(z.sumE/z.count)};
   }
 
   function renderZone(zone){
-    const rows = API.rows.filter(r => r.zone === zone);
-
     zoneTitle.textContent = zone;
-    const meta = computeZoneMeta(zone);
-    zoneMeta.textContent = `${meta.count} équipe(s) – Moy ${meta.moyA}% A / ${meta.moyE}% E`;
+    const st = zoneStats(zone);
+    zoneMeta.textContent = `${st.count} équipe(s) – Moy ${st.moyA}% A / ${st.moyE}% E`;
 
+    const rows = (API && Array.isArray(API.rows)) ? API.rows.filter(r => r.zone === zone) : [];
     resultsList.innerHTML = "";
 
-    if (!rows.length) {
-      resultsList.innerHTML = `<div class="small" style="color:var(--muted)">Aucune équipe pour cette zone. Clique sur la zone sur la carte pour ajouter.</div>`;
+    if (!rows.length){
+      resultsList.innerHTML = `<div class="small" style="color:var(--muted)">Aucune équipe ici. Clique sur la zone sur la carte pour ajouter.</div>`;
       return;
     }
 
@@ -245,103 +248,78 @@
       card.innerHTML = `
         <div class="cardTop">
           <div>
-            <div class="teamName">${escapeHtml(r.equipe)}</div>
-            <div class="small">ID: ${escapeHtml(r.id)}</div>
+            <div class="teamName">${esc(r.equipe)}</div>
+            <div class="small">ID: ${esc(r.id)}</div>
           </div>
-          <div class="small">${escapeHtml(r.zone)}</div>
+          <div class="small">${esc(r.zone)}</div>
         </div>
 
         <div class="grid">
           <div>
             <div class="small">Nom équipe</div>
-            <input data-id="${r.id}" data-field="equipe" value="${escapeAttr(r.equipe)}">
+            <input data-id="${escAttr(r.id)}" data-field="equipe" value="${escAttr(r.equipe)}">
           </div>
           <div>
             <div class="small">% agent</div>
-            <input type="number" min="0" max="100" step="1" data-id="${r.id}" data-field="agent" value="${r.agent}">
+            <input type="number" min="0" max="100" step="1" data-id="${escAttr(r.id)}" data-field="agent" value="${r.agent}">
           </div>
           <div>
             <div class="small">% encadrement</div>
-            <input type="number" min="0" max="100" step="1" data-id="${r.id}" data-field="encad" value="${r.encad}">
+            <input type="number" min="0" max="100" step="1" data-id="${escAttr(r.id)}" data-field="encad" value="${r.encad}">
           </div>
         </div>
 
         <div class="actions">
-          <button class="btn btn-accent btn-sm" data-action="update" data-id="${r.id}">Modifier</button>
-          <button class="btn btn-danger btn-sm" data-action="delete" data-id="${r.id}">Supprimer</button>
+          <button class="btn btn-accent btn-sm" data-action="update" data-id="${escAttr(r.id)}">Modifier</button>
+          <button class="btn btn-danger btn-sm" data-action="delete" data-id="${escAttr(r.id)}">Supprimer</button>
         </div>
       `;
-
       resultsList.appendChild(card);
     });
   }
 
-  function renderSummary(){
-    // petit résumé global (optionnel)
-    const total = API.rows.length;
-    zoneSummary.innerHTML = `<div class="small" style="color:var(--muted)">Total lignes : <b>${total}</b></div>`;
-  }
-
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  }
-  function escapeAttr(s){ return escapeHtml(s).replace(/"/g, "&quot;"); }
-
   async function loadAll(){
     try{
       const res = await apiCall("list");
-      if(!res.ok) throw new Error(res.error || "API not ok");
-      API = res.data;
+      if(!res || res.ok !== true) throw new Error((res && res.error) ? res.error : "Réponse API invalide");
+      if(!res.data || !Array.isArray(res.data.rows)) throw new Error("Format API invalide: data.rows manquant");
 
-      renderSummary();
-
-      // remplir select si vide
-      if(zoneSelect.options.length === 0){
-        ZONES.forEach(z => {
-          const opt = document.createElement("option");
-          opt.value = z; opt.textContent = z;
-          zoneSelect.appendChild(opt);
-        });
-      }
-
+      API = res.data; // {rows, byZone}
       renderZone(zoneSelect.value || ZONES[0]);
     }catch(err){
       console.error(err);
-      resultsList.innerHTML = `<div class="small" style="color:var(--danger);font-weight:800">${escapeHtml(err.message || err)}</div>`;
+      resultsList.innerHTML = `<div class="small" style="color:var(--danger);font-weight:900">${esc(err.message || err)}</div>`;
       zoneTitle.textContent = "";
       zoneMeta.textContent = "";
     }
   }
 
-  // Update/Delete buttons
+  // ====== Panel events ======
+  zoneSelect.addEventListener("change", () => renderZone(zoneSelect.value));
+  refreshBtn.addEventListener("click", loadAll);
+
   resultsList.addEventListener("click", async (e) => {
     const btn = e.target.closest("button[data-action]");
     if(!btn) return;
 
     const id = btn.getAttribute("data-id");
     const action = btn.getAttribute("data-action");
-
     const card = btn.closest(".card");
     const inputs = Array.from(card.querySelectorAll("input[data-id]"));
 
     const data = {};
-    inputs.forEach(inp => {
-      const f = inp.getAttribute("data-field");
-      data[f] = inp.value;
-    });
+    inputs.forEach(inp => data[inp.getAttribute("data-field")] = inp.value);
 
     try{
       if(action === "update"){
-        const equipe = String(data.equipe || "").trim();
+        const equipe = String(data.equipe||"").trim();
         const agent = Number(data.agent);
         const encad = Number(data.encad);
         if(!equipe) return alert("Nom équipe obligatoire");
         if(isNaN(agent) || isNaN(encad)) return alert("Pourcentages invalides");
-
         const res = await apiCall("update", { id, equipe, agent, encad });
         if(!res.ok) throw new Error(res.error || "update failed");
         API = res.data;
-        renderSummary();
         renderZone(zoneSelect.value);
       }
 
@@ -350,7 +328,6 @@
         const res = await apiCall("delete", { id });
         if(!res.ok) throw new Error(res.error || "delete failed");
         API = res.data;
-        renderSummary();
         renderZone(zoneSelect.value);
       }
     }catch(err){
@@ -359,57 +336,32 @@
     }
   });
 
-  // Select zone
-  zoneSelect.addEventListener("change", () => renderZone(zoneSelect.value));
-  refreshBtn.addEventListener("click", loadAll);
-
-  // Hotspots => ouvrir modal d'ajout
-  document.querySelectorAll(".hotspot").forEach(h => {
-    h.addEventListener("click", () => {
-      const z = h.getAttribute("data-zone");
-      zoneSelect.value = z;
-      renderZone(z);
-
-      modalZone.textContent = z;
-      mEquipe.value = "";
-      mAgent.value = "";
-      mEncad.value = "";
-      modalErr.style.display = "none";
-      backdrop.style.display = "flex";
-      setTimeout(() => mEquipe.focus(), 50);
-    });
-  });
-
-  function closeModalFn(){
-    backdrop.style.display = "none";
+  // ====== Modal add ======
+  function openModal(zone){
+    modalZone.textContent = zone;
+    mEquipe.value = ""; mAgent.value = ""; mEncad.value = "";
+    modalErr.style.display = "none";
+    backdrop.style.display = "flex";
+    setTimeout(()=>mEquipe.focus(), 50);
   }
+  function closeModalFn(){ backdrop.style.display="none"; }
   closeModal.addEventListener("click", closeModalFn);
   cancelModal.addEventListener("click", closeModalFn);
-  backdrop.addEventListener("click", (e)=>{ if(e.target === backdrop) closeModalFn(); });
+  backdrop.addEventListener("click", (e)=>{ if(e.target===backdrop) closeModalFn(); });
 
-  // Save (ADD) via JSONP GET (stable)
   saveModal.addEventListener("click", async () => {
     const zone = modalZone.textContent;
     const equipe = mEquipe.value.trim();
     const agent = Number(mAgent.value);
     const encad = Number(mEncad.value);
 
-    if(!equipe){
-      modalErr.textContent = "Merci de saisir le nom d’équipe.";
-      modalErr.style.display = "block";
-      return;
-    }
-    if(isNaN(agent) || isNaN(encad)){
-      modalErr.textContent = "Merci de saisir les deux pourcentages (0-100).";
-      modalErr.style.display = "block";
-      return;
-    }
+    if(!equipe){ modalErr.textContent="Merci de saisir le nom d’équipe."; modalErr.style.display="block"; return; }
+    if(isNaN(agent) || isNaN(encad)){ modalErr.textContent="Merci de saisir les deux pourcentages (0-100)."; modalErr.style.display="block"; return; }
 
     try{
       const res = await apiCall("add", { zone, equipe, agent, encad });
       if(!res.ok) throw new Error(res.error || "add failed");
       API = res.data;
-      renderSummary();
       renderZone(zoneSelect.value);
       closeModalFn();
     }catch(err){
@@ -419,7 +371,36 @@
     }
   });
 
-  // INIT
+  document.querySelectorAll(".hotspot").forEach(h => {
+    h.addEventListener("click", () => {
+      const z = h.getAttribute("data-zone");
+      zoneSelect.value = z;
+      renderZone(z);
+      openModal(z);
+    });
+  });
+
+  // ====== Password gate ======
+  function unlock(){
+    gate.style.display = "none";
+    app.style.display = "grid";
+    loadAll();
+  }
+
+  function checkPw(){
+    const v = pwInput.value;
+    if(v === PASSWORD){
+      sessionStorage.setItem("cts_carte_ok", "1");
+      unlock();
+    }else{
+      pwErr.textContent = "Mot de passe incorrect.";
+      pwErr.style.display = "block";
+    }
+  }
+  pwBtn.addEventListener("click", checkPw);
+  pwInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter") checkPw(); });
+
+  // init select
   zoneSelect.innerHTML = "";
   ZONES.forEach(z => {
     const opt = document.createElement("option");
@@ -427,7 +408,9 @@
     zoneSelect.appendChild(opt);
   });
   zoneSelect.value = "INFRAPÔLE BRETAGNE";
-  loadAll();
+
+  // auto unlock if session ok
+  if(sessionStorage.getItem("cts_carte_ok")==="1") unlock();
 </script>
 </body>
 </html>
