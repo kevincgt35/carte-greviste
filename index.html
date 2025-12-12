@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Carte – Suivi grévistes</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; background:#f5f5f5; }
+    h1 { text-align:center; margin:18px 0; }
+
+    .map-container{
+      position:relative; max-width:1100px; margin:0 auto 30px;
+      background:#fff; border-radius:12px; overflow:hidden;
+      box-shadow:0 4px 12px rgba(0,0,0,.15);
+    }
+    .map-container img{ width:100%; display:block; }
+
+    .hotspot{
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  background: transparent;
+  border: none;
+}
+
+    .zone-label{
+      position:absolute; transform:translate(-50%,-50%);
+      font-size:11px; background:rgba(255,255,255,.88);
+      padding:2px 4px; border-radius:4px;
+      box-shadow:0 1px 3px rgba(0,0,0,.2);
+      pointer-events:none; white-space:nowrap;
+    }
+
+    .modal-backdrop{
+      position:fixed; inset:0; background:rgba(0,0,0,.4);
+      display:none; align-items:center; justify-content:center; z-index:1000;
+    }
+    .modal{
+      background:#fff; border-radius:10px; max-width:520px; width:95%;
+      padding:18px 20px; box-shadow:0 6px 20px rgba(0,0,0,.3);
+    }
+    .modal-header{ display:flex; justify-content:space-between; align-items:center; }
+    .modal-title{ font-size:1.15rem; font-weight:700; }
+    .close-btn{ background:none; border:none; font-size:1.6rem; cursor:pointer; }
+
+    table{ border-collapse:collapse; width:100%; margin-top:10px; }
+    th,td{ border:1px solid #ddd; padding:7px 8px; font-size:.95rem; }
+    th{ background:#f0e6f5; text-align:left; }
+    input{ width:100%; border:none; outline:none; background:transparent; font-size:.95rem; }
+
+    .modal-footer{ margin-top:12px; text-align:right; }
+    .btn{ padding:8px 14px; border-radius:6px; border:none; cursor:pointer; font-size:.95rem; }
+    .btn-secondary{ background:#e0e0e0; margin-right:6px; }
+    .btn-primary{ background:#800080; color:#fff; }
+  </style>
+</head>
+<body>
+
+<h1>Carte – Suivi grévistes</h1>
+
+<div class="map-container" id="mapContainer">
+  <img src="carte-zones-production.png" alt="Carte des zones">
+
+  <!-- OUEST -->
+  <div class="hotspot" data-zone="INFRAPÔLE BRETAGNE" style="left:31%; top:33%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE PAYS DE LOIRE" style="left:31%; top:43%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE INDRE LIMOUSIN" style="left:45%; top:58%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE AQUITAINE" style="left:35%; top:65%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE CENTRE" style="left:43%; top:42%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE LGV ATLANTIQUE" style="left:44%; top:37%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE POITOU CHARENTES" style="left:41%; top:50%;"></div>
+
+  <!-- SUD -->
+  <div class="hotspot" data-zone="INFRAPÔLE MIDI-PYRÉNÉES" style="left:46%; top:80%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE LANGUEDOC-ROUSSILLON" style="left:57%; top:81%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE PACA" style="left:67%; top:83%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE LGV SEE" style="left:63%; top:59%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE ALPES" style="left:68%; top:60%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE RHODANIEN" style="left:64%; top:55%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE AUVERGNE-NIVERNAIS" style="left:54%; top:58%;"></div>
+
+  <!-- EST -->
+  <div class="hotspot" data-zone="INFRAPÔLE BOURGOGNE FRANCHE-COMTÉ" style="left:63%; top:43%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE RHENAN" style="left:75%; top:30%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE EST EUROPÉEN" style="left:66.5%; top:26%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE LORRAINE" style="left:68%; top:23%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE CHAMPAGNE ARDENNE" style="left:58%; top:23%;"></div>
+
+  <!-- NORD -->
+  <div class="hotspot" data-zone="INFRAPÔLE HAUTE PICARDIE" style="left:55%; top:18%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE NORD EUROPÉEN" style="left:55%; top:12%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE NORD PAS DE CALAIS" style="left:51%; top:10%;"></div>
+  <div class="hotspot" data-zone="INFRAPÔLE NORD NORMANDIE" style="left:43%; top:24%;"></div>
+</div>
+
+<!-- MODALE -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Zone : <span id="zoneName"></span></div>
+      <button class="close-btn" id="closeModal">&times;</button>
+    </div>
+
+    <table>
+      <tr><th>Champ</th><th>Valeur</th></tr>
+      <tr>
+        <td>Nom équipe</td>
+        <td><input type="text" id="champEquipe" placeholder="Ex: Équipe A"></td>
+      </tr>
+      <tr>
+        <td>% gréviste agent</td>
+        <td><input type="number" id="champGrevisteAgent" min="0" max="100" step="1" placeholder="0-100"></td>
+      </tr>
+      <tr>
+        <td>% gréviste encadrement</td>
+        <td><input type="number" id="champGrevisteEncadrement" min="0" max="100" step="1" placeholder="0-100"></td>
+      </tr>
+    </table>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="cancelBtn">Fermer</button>
+      <button class="btn btn-primary" id="saveBtn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+ // 🔒 MOT DE PASSE SIMPLE
+  const PASSWORD = "CTS CARTE"; // ← CHANGE LE MOT DE PASSE ICI
+
+  const userPass = prompt("Mot de passe requis :");
+  if (userPass !== PASSWORD) {
+    alert("Accès refusé");
+    document.body.innerHTML = "<h2 style='text-align:center;margin-top:40px'>Accès refusé</h2>";
+    throw new Error("Accès refusé");
+  }
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwd7Z7Fq_2_dSntYK_lp1fGdXwLrGEpW1cbJyc-vjZNCFtozP2Pn15Tp2UA2CuWJXFbww/exec";
+
+  const mapContainer = document.getElementById('mapContainer');
+  const hotspots = document.querySelectorAll('.hotspot');
+
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const zoneNameSpan = document.getElementById('zoneName');
+  const closeModalBtn = document.getElementById('closeModal');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const saveBtn = document.getElementById('saveBtn');
+
+  // ✅ Stats en mémoire pour calculer une moyenne
+  // zoneStats[zone] = {sumA: number, sumE: number, count: number}
+  const zoneStats = {};
+
+  // ✅ Crée un label sous chaque point + ouvre la modale au clic
+  hotspots.forEach(hs => {
+    const zone = hs.getAttribute('data-zone');
+
+    const label = document.createElement('div');
+    label.className = 'zone-label';
+    label.setAttribute('data-zone', zone);
+
+    label.style.left = hs.style.left;
+    const top = parseFloat(hs.style.top);
+    label.style.top = (top + 3) + '%';
+
+    label.textContent = ''; // vide au départ
+    mapContainer.appendChild(label);
+
+    hs.addEventListener('click', () => {
+      zoneNameSpan.textContent = zone;
+      modalBackdrop.style.display = 'flex';
+    });
+  });
+
+  function closeModal() { modalBackdrop.style.display = 'none'; }
+  closeModalBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', (e) => { if (e.target === modalBackdrop) closeModal(); });
+
+  // ✅ Met à jour l’affichage (MOYENNE) sur la carte pour une zone
+  function updateZoneLabel(zone) {
+    const label = document.querySelector('.zone-label[data-zone="' + zone + '"]');
+    if (!label) return;
+
+    const s = zoneStats[zone];
+    if (!s || s.count === 0) {
+      label.textContent = '';
+      return;
+    }
+
+    const avgA = Math.round((s.sumA / s.count) * 10) / 10;
+    const avgE = Math.round((s.sumE / s.count) * 10) / 10;
+
+    label.textContent = `${s.count} équipe(s) – Moy ${avgA}% A / ${avgE}% E`;
+  }
+
+  // ✅ Ajoute une saisie dans les stats (pour recalculer moyenne)
+  function addToStats(zone, agentPercent, encadPercent) {
+    if (!zoneStats[zone]) zoneStats[zone] = { sumA: 0, sumE: 0, count: 0 };
+    zoneStats[zone].sumA += agentPercent;
+    zoneStats[zone].sumE += encadPercent;
+    zoneStats[zone].count += 1;
+  }
+
+  // ✅ Charger les moyennes depuis Google Sheet au chargement (JSONP)
+  // Ton Apps Script doit avoir doGet(e) qui renvoie callback({ok:true,zones:{...}})
+  function handleSheetData(payload) {
+    if (!payload || !payload.ok) {
+      console.error("Chargement Google Sheet KO:", payload);
+      return;
+    }
+
+    const zones = payload.zones || {};
+    Object.keys(zones).forEach(zone => {
+      const z = zones[zone]; // {avgAgent, avgEncad, count}
+      zoneStats[zone] = {
+        count: z.count,
+        sumA: z.avgAgent * z.count,
+        sumE: z.avgEncad * z.count
+      };
+      updateZoneLabel(zone);
+    });
+  }
+  window.handleSheetData = handleSheetData;
+
+  function loadFromSheet() {
+    const s = document.createElement("script");
+    s.src = SCRIPT_URL + "?callback=handleSheetData&ts=" + Date.now();
+    s.onerror = () => console.error("Impossible de charger les données (JSONP).");
+    document.body.appendChild(s);
+  }
+
+  window.addEventListener("load", loadFromSheet);
+
+  // ✅ Enregistrer => envoyer au Google Sheet + MAJ moyenne sur la carte
+  saveBtn.addEventListener('click', async () => {
+    const zone = zoneNameSpan.textContent;
+
+    const equipe = document.getElementById('champEquipe').value.trim();
+    const agentStr = document.getElementById('champGrevisteAgent').value;
+    const encadStr = document.getElementById('champGrevisteEncadrement').value;
+
+    if (!equipe) { alert("Merci de saisir le nom d’équipe."); return; }
+    if (agentStr === "" || encadStr === "") { alert("Merci de saisir les deux pourcentages."); return; }
+
+    const agent = Number(agentStr);
+    const encad = Number(encadStr);
+
+    if (Number.isNaN(agent) || Number.isNaN(encad)) { alert("Pourcentages invalides."); return; }
+
+    const data = {
+      zone,
+      equipe,
+      grevisteAgent: agent,
+      grevisteEncadrement: encad
+    };
+
+    try {
+      // 1) Envoi au Google Sheet
+      await fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      // 2) Mise à jour moyenne sur la carte (local)
+      addToStats(zone, agent, encad);
+      updateZoneLabel(zone);
+
+      closeModal();
+
+      // reset champs
+      document.getElementById('champEquipe').value = "";
+      document.getElementById('champGrevisteAgent').value = "";
+      document.getElementById('champGrevisteEncadrement').value = "";
+
+      alert("OK : enregistré + moyenne mise à jour sur la carte.");
+    } catch (err) {
+      console.error(err);
+      alert("Erreur d'envoi. Vérifie le déploiement Apps Script.");
+    }
+  });
+</script>
+</body>
+</html>
